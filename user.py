@@ -86,6 +86,8 @@ class User:
             valor = ""
         return valor
 
+
+
     @property
     def campos(self):
         try:
