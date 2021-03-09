@@ -20,12 +20,13 @@ class Artigos:
         ficheiro = self.herokudb()
         db = ficheiro.cursor()
         db.execute("CREATE TABLE IF NOT EXISTS categorias (id serial primary key, category text)")
-        db.execute("CREATE TABLE IF NOT EXISTS artigos(id serial primary key, category int, brand text,"
+        db.execute("CREATE TABLE IF NOT EXISTS marcas (id serial primary key, category text)")
+        db.execute("CREATE TABLE IF NOT EXISTS artigos(id serial primary key, category int, brand int,"
                    "description text, price numeric, reference text, ean text, stock int, created date, update date,"
-                   "CONSTRAINT fk_category foreign key (category) references categorias(id))")
+                   "CONSTRAINT fk_category foreign key (category) references categorias(id),"
+                   "CONSTRAINT fk_category foreign key (brand) references marcas(id))")
         ficheiro.commit()
         ficheiro.close()
-
 
     def herokudb(self):
         from db import Database
@@ -41,17 +42,15 @@ class Artigos:
             db.execute("select * from artigos where id = %s", (id,))
             valor = db.fetchone()
             ficheiro.close()
-            self.id = valor[0]    # Numero do Produto
-            self.category = valor[1]    # Categoria
-            self.brand = valor[2]      # Marca
-            self.description = valor[3]    # Descrição
-            self.price = valor[4]    # Preço
+            self.id = valor[0]  # Numero do Produto
+            self.category = valor[1]  # Categoria
+            self.brand = valor[2]  # Marca
+            self.description = valor[3]  # Descrição
+            self.price = valor[4]  # Preço
         except:
             self.reset()
             erro = "O artigo não existe!"
         return erro
-
-
 
     def inserirA(self, category, brand, description, price):
         ficheiro = self.herokudb()
@@ -68,6 +67,13 @@ class Artigos:
         ficheiro = self.herokudb()
         db = ficheiro.cursor()
         db.execute("INSERT INTO categorias VALUES (DEFAULT, %s)", (category,))
+        ficheiro.commit()
+        ficheiro.close()
+
+    def inserirB(self, brand):
+        ficheiro = self.herokudb()
+        db = ficheiro.cursor()
+        db.execute("INSERT INTO marcas VALUES (DEFAULT, %s)", (brand,))
         ficheiro.commit()
         ficheiro.close()
 
@@ -98,6 +104,17 @@ class Artigos:
             ficheiro = self.herokudb()
             db = ficheiro.cursor()
             db.execute("SELECT id FROM categorias WHERE category = %s", (category,))
+            valor = db.fetchone()
+            ficheiro.close()
+        except:
+            valor = None
+        return valor
+
+    def existeB(self, brand):
+        try:
+            ficheiro = self.herokudb()
+            db = ficheiro.cursor()
+            db.execute("SELECT id FROM marcas WHERE brand = %s", (brand,))
             valor = db.fetchone()
             ficheiro.close()
         except:
@@ -151,6 +168,18 @@ class Artigos:
         return valor
 
     @property
+    def listaB(self):
+        try:
+            ficheiro = self.herokudb()
+            db = ficheiro.cursor()
+            db.execute("select brand from marcas")
+            valor = db.fetchall()
+            ficheiro.close()
+        except:
+            valor = ""
+        return valor
+
+    @property
     def campos(self):
         try:
             ficheiro = self.herokudb()
@@ -160,8 +189,8 @@ class Artigos:
             ficheiro.close()
         except:
             valor = ""
+        valor = [('numero',), ('categorias',), ('marcas',), ('descriçao',), ('preço',)]
         return valor
-
 
     @staticmethod
     def code(passe):

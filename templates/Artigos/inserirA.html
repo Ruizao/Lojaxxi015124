@@ -14,10 +14,15 @@
                 <option value="{{ lcat[item][0] }}">
             {% endfor %}
         </datalist>
-
-
         <h4>Marca</h4>
-        <input type='text' name='brand' required>
+        <input list="brand" name="brand" required>
+        <datalist id="brand">
+            {% set lbad = art.listaB %}
+            {% for item in range(lbad|count) %}
+                <option value="{{ lbad[item][0] }}">
+            {% endfor %}
+        </datalist>
+
         <h4>Descrição</h4>
         <input type='text' name='description' required>
         <h4>Preço</h4>
