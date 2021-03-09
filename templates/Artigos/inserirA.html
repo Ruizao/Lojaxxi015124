@@ -11,16 +11,16 @@
         <datalist id="category">
             {% set lcat = art.listaC %}
             {% for item in range(lcat|count) %}
-                <option value="{{ lcat[item][0] }}">
-            {% endfor %}
+            <option value="{{ lcat[item][0] }}">
+                {% endfor %}
         </datalist>
         <h4>Marca</h4>
-        <input list="brand" name="brand" required>
+        <input list="brand" name='brand' required>
         <datalist id="brand">
-            {% set lbad = art.listaB %}
-            {% for item in range(lbad|count) %}
-                <option value="{{ lbad[item][0] }}">
-            {% endfor %}
+            {% set lmarca = art.listaB %}
+            {% for item in range(lmarca|count) %}
+            <option value="{{ lmarca[item][0] }}">
+                {% endfor %}
         </datalist>
 
         <h4>Descrição</h4>

@@ -7,24 +7,24 @@ class Artigos:
         self.reset()
 
     def reset(self):
-        self.id = None  # Numero do produto
+        self.id = None  # Número do produto
         self.category = None  # Categoria
         self.brand = None  # Marca
         self.description = None  # Descrição
         self.price = None  # Preço
-        self.reference = None  # Referencia
-        self.ean = None  # Europian Article Number
+        self.reference = None  # Referência
+        self.ean = None  # European Article Number
         self.stock = None  # Quantidade de artigos
         self.created = None  # Data de criação
-        self.update = None  # Data de Alteração
+        self.updated = None  # Data de alteração
         ficheiro = self.herokudb()
         db = ficheiro.cursor()
         db.execute("CREATE TABLE IF NOT EXISTS categorias (id serial primary key, category text)")
-        db.execute("CREATE TABLE IF NOT EXISTS marcas (id serial primary key, category text)")
-        db.execute("CREATE TABLE IF NOT EXISTS artigos(id serial primary key, category int, brand int,"
-                   "description text, price numeric, reference text, ean text, stock int, created date, update date,"
+        db.execute("CREATE TABLE IF NOT EXISTS marcas (id serial primary key, brand text)")
+        db.execute("CREATE TABLE IF NOT EXISTS artigos (id serial primary key, category int, brand int,"
+                   "description text, price numeric, reference text, ean text, stock int, created date, updated date,"
                    "CONSTRAINT fk_category foreign key (category) references categorias(id),"
-                   "CONSTRAINT fk_category foreign key (brand) references marcas(id))")
+                   "CONSTRAINT fk_brand foreign key (brand) references marcas(id))")
         ficheiro.commit()
         ficheiro.close()
 
@@ -59,7 +59,18 @@ class Artigos:
         if not catId:
             self.inserirC(category)
             catId = self.existeC(category)
-        db.execute("INSERT INTO artigos VALUES (DEFAULT ,%s, %s, %s, %s)", (catId, brand, description, price,))
+        marcaId = self.existeB(brand)
+        if not marcaId:
+            self.inserirB(brand)
+            marcaId = self.existeB(brand)
+        db.execute("INSERT INTO artigos VALUES (DEFAULT ,%s, %s, %s, %s)", (catId, marcaId, description, price,))
+        ficheiro.commit()
+        ficheiro.close()
+
+    def inserirB(self, brand):
+        ficheiro = self.herokudb()
+        db = ficheiro.cursor()
+        db.execute("INSERT INTO marcas VALUES (DEFAULT ,%s)", (brand,))
         ficheiro.commit()
         ficheiro.close()
 
@@ -67,13 +78,6 @@ class Artigos:
         ficheiro = self.herokudb()
         db = ficheiro.cursor()
         db.execute("INSERT INTO categorias VALUES (DEFAULT, %s)", (category,))
-        ficheiro.commit()
-        ficheiro.close()
-
-    def inserirB(self, brand):
-        ficheiro = self.herokudb()
-        db = ficheiro.cursor()
-        db.execute("INSERT INTO marcas VALUES (DEFAULT, %s)", (brand,))
         ficheiro.commit()
         ficheiro.close()
 
@@ -99,22 +103,22 @@ class Artigos:
             valor = None
         return valor
 
-    def existeC(self, category):
+    def existeB(self, brand):
         try:
             ficheiro = self.herokudb()
             db = ficheiro.cursor()
-            db.execute("SELECT id FROM categorias WHERE category = %s", (category,))
+            db.execute("SELECT id FROM marcas WHERE brand = %s", (brand,))
             valor = db.fetchone()
             ficheiro.close()
         except:
             valor = None
         return valor
 
-    def existeB(self, brand):
+    def existeC(self, category):
         try:
             ficheiro = self.herokudb()
             db = ficheiro.cursor()
-            db.execute("SELECT id FROM marcas WHERE brand = %s", (brand,))
+            db.execute("SELECT id FROM categorias WHERE category = %s", (category,))
             valor = db.fetchone()
             ficheiro.close()
         except:
@@ -148,19 +152,8 @@ class Artigos:
         try:
             ficheiro = self.herokudb()
             db = ficheiro.cursor()
-            db.execute("SELECT * FROM artigos")
-            valor = db.fetchall()
-            ficheiro.close()
-        except:
-            valor = ""
-        return valor
-
-    @property
-    def listaC(self):
-        try:
-            ficheiro = self.herokudb()
-            db = ficheiro.cursor()
-            db.execute("select category from categorias")
+            db.execute("select artigos.id, c.category, m.brand, description,"
+                       "price from artigos join categorias c on artigos.category = c.id join marcas m on artigos.brand = m.id")
             valor = db.fetchall()
             ficheiro.close()
         except:
@@ -180,6 +173,18 @@ class Artigos:
         return valor
 
     @property
+    def listaC(self):
+        try:
+            ficheiro = self.herokudb()
+            db = ficheiro.cursor()
+            db.execute("select category from categorias")
+            valor = db.fetchall()
+            ficheiro.close()
+        except:
+            valor = ""
+        return valor
+
+    @property
     def campos(self):
         try:
             ficheiro = self.herokudb()
@@ -189,7 +194,7 @@ class Artigos:
             ficheiro.close()
         except:
             valor = ""
-        valor = [('numero',), ('categorias',), ('marcas',), ('descriçao',), ('preço',)]
+        valor = [('numero',), ('categoria',), ('marca',), ('descrição',), ('preço',)]
         return valor
 
     @staticmethod
